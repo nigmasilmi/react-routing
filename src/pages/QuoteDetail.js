@@ -1,42 +1,60 @@
-import React, { Fragment } from 'react';
-import { useParams, Route } from 'react-router-dom';
+import React, { Fragment, useEffect } from 'react';
+import { useRouteMatch } from 'react-router-dom';
+import { useParams, Route, Link } from 'react-router-dom';
+import { getSingleQuote } from '../lib/api';
+import useHttp from '../hooks/use-http';
 import Comments from '../components/comments/Comments';
 import HighlightedQuote from '../components/quotes/HighlightedQuote';
-
-const DUMMY_QUOTES = [
-  {
-    id: 1,
-    author: 'Paul McCartney',
-    text: "We can work it out. Life is very short, and there's no time for fussing and fighting, my friend.",
-  },
-  {
-    id: 2,
-    author: 'Juliana Romano',
-    text: 'Why was it always up to her when I was her best friend and when I was just a stranger?',
-  },
-  {
-    id: 3,
-    author: 'William Landay',
-    text: "The interior of a teenager's mind is an endless war between Stupid and Clever. ",
-  },
-  {
-    id: 4,
-    author: 'David Wong',
-    text: 'Son, the greatest trick the Devil pulled was convincing the world there was only one of him.',
-  },
-];
+import LoadingSpinner from '../components/UI/LoadingSpinner';
 
 const QuoteDetail = () => {
   const params = useParams();
+  const match = useRouteMatch();
+  const { quoteId } = params;
 
-  const quote = DUMMY_QUOTES.find((qt) => qt.id.toString() === params.quoteId);
-  if (!quote) {
-    return <p>Not quote found</p>;
+  const {
+    sendRequest,
+    status,
+    data: loadedQuote,
+    error,
+  } = useHttp(getSingleQuote, true);
+
+  useEffect(() => {
+    sendRequest(quoteId);
+  }, [sendRequest, quoteId]);
+
+  if (status === 'pending') {
+    return (
+      <div className="centered">
+        {' '}
+        <LoadingSpinner />{' '}
+      </div>
+    );
   }
+
+  if (error) {
+    return <div className="centered"> {error} </div>;
+  }
+
+  if (!loadedQuote.text) {
+    return (
+      <div className="centered">
+        <p>No quote found</p>
+      </div>
+    );
+  }
+
   return (
     <Fragment>
-      <HighlightedQuote text={quote.text} author={quote.author} />
-      <Route path={`/quotes/${params.quoteId}/comments`}>
+      <HighlightedQuote text={loadedQuote.text} author={loadedQuote.author} />
+      <Route path={match.path} exact>
+        <div className="centered">
+          <Link className="btn--flat" to={`${match.url}/comments`}>
+            Show comments
+          </Link>
+        </div>
+      </Route>
+      <Route path={`${match.path}/comments`}>
         <Comments />
       </Route>
     </Fragment>

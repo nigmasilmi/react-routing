@@ -320,8 +320,8 @@ is this now:
 
 ### useHistory() / useNavigate()
 
-- ???
+- [Check this](https://reactrouter.com/docs/en/v6/upgrading/v5#use-usenavigate-instead-of-usehistory)
 
 ### useRouteMatch
 
-- ???
+- [Check this](https://reactrouter.com/docs/en/v6/upgrading/v5#replace-useroutematch-with-usematch)

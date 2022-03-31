@@ -190,3 +190,138 @@ That can also be written as this:
         search: `?sort=${isSortingAscending ? 'desc' : 'asc'}`,
         });
 ```
+
+## React Router 6
+
+- Some important changes are integrated in version 6.
+- Some of the most significant changes and new ways to implement are described here.
+- The version 6 has been installed in this project, that was built with version 5.
+- The next sections describe the necessary changes hightlighting some of the implementation details
+
+### Switch / Routes
+
+- Replace with Routes
+- The component that should be rendered in that route is no longer a child but a value for the prop "element" as a JSX component.
+
+This:
+
+```
+ <Route path="/quotes/:quoteId">
+    <QuoteDetail />
+  </Route>
+```
+
+Changed to this:
+
+```
+<Route path="/quotes/:quoteId" element={ <QuoteDetail />} />
+```
+
+### exact
+
+- Always looks for the exact path, so it is no longer necessary
+- If the old behavior is wanted, meaning that we want to match only the beginning of the path, we should use the \* wildcard
+
+For example:
+
+```
+ <Route path="/quotes/*" element={<AllQuotes />} />
+```
+
+> will match /quotes/hello-world, /quotes/anything
+
+### thus, the order does not matter anymore
+
+> but be aware that if there are some routes like this:
+
+```
+ <Route path="/quotes/*" element={<AllQuotes />} />
+ <Route path="/quotes/:quoteId" element={<QuoteDetail />} />
+```
+
+> with a path of /qoutes/1, QuoteDetail will be rendered, because the new internal algorithm of react-router-dom@6
+
+### Nested Routes
+
+- Should be wrapped with Routes
+- And from the parent route, we must add a wildcard to allow new nested routes be loaded as part of that parent, and now because the parent has a wildcard, the child assumes that the prist part of the route path now is complaint.
+
+```
+  <Route path={match.path} exact>
+    <div className="centered">
+      <Link className="btn--flat" to={`${match.url}/comments`}>
+        Show comments
+      </Link>
+    </div>
+  </Route>
+  <Route path={`${match.path}/comments`}>
+    <Comments />
+  </Route>
+
+```
+
+to this:
+
+```
+<Routes>
+  <Route path={match.path} element={btnShowComments} />
+  <Route path={`comments`} element={<Comments />} />
+</Routes>
+```
+
+- Or we can define all the routes and nested routes in a single place and then in the child component, "mark" where the content shout be rendered with <Outlet />.
+
+### Redirect / Navigate
+
+- Redirect is now Navigate
+
+this:
+
+```
+ <Route path="/" exact>
+    <Redirect to="/quotes" />
+  </Route>
+```
+
+is this now:
+
+```
+<Route path="/" element={<Navigate to="/quotes" />} />
+```
+
+> but note that this way, the route will be pushed, if we want the exact behavior of redirect we must add the prop replace to the Navigate component
+
+```
+<Route path="/" element={<Navigate replace to="/quotes" />} />
+```
+
+### Link / activeClassName => className + callback
+
+- To apply a different style to the active Link, now the prop must be the same className as always but, assigned to a function that receives the navData argument (the name is up to us, but what is received is the information about the navigation)
+  > this
+
+```
+ <NavLink to="/quotes" activeClassName={styles.active}>
+  Quotes
+ </NavLink>
+```
+
+> changed to this
+
+```
+  <NavLink to="/quotes" className={(navData) => (navData.isActive ? styles.active : '')}>
+      Quotes
+  </NavLink>
+```
+
+### Prompt
+
+- Not available for version 6 for now
+
+### useHistory() / useNavigate()
+
+- ???
+
+### useRouteMatch
+
+- ???
